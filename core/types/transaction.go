@@ -49,6 +49,7 @@ const (
 	AccessListTxType = 0x01
 	DynamicFeeTxType = 0x02
 	BlobTxType       = 0x03
+	DepositTxType    = 0x7E
 )
 
 // Transaction is an Ethereum transaction.
@@ -206,6 +207,8 @@ func (tx *Transaction) decodeTyped(b []byte) (TxData, error) {
 		inner = new(DynamicFeeTx)
 	case BlobTxType:
 		inner = new(BlobTx)
+	case DepositTxType:
+		inner = new(DepositTx)
 	default:
 		return nil, ErrTxTypeNotSupported
 	}
@@ -350,6 +353,9 @@ func (tx *Transaction) GasTipCapIntCmp(other *big.Int) int {
 // Note: if the effective gasTipCap is negative, this method returns both error
 // the actual negative value, _and_ ErrGasFeeCapTooLow
 func (tx *Transaction) EffectiveGasTip(baseFee *big.Int) (*big.Int, error) {
+	if tx.Type() == DepositTxType {
+		return new(big.Int), nil
+	}
 	if baseFee == nil {
 		return tx.GasTipCap(), nil
 	}
